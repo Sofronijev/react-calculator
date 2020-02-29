@@ -15,21 +15,21 @@ function Buttons(props) {
   return (
     <div className="buttons">
       <button onClick={props.handleClear} id="clear">AC</button>
-      <button className="operator" onClick={props.handleOperators} id="divide">/</button>
-      <button className="operator" onClick={props.handleOperators} id="multiply">*</button>
-      <button onClick={props.handleNumber} id="seven">7</button>
-      <button onClick={props.handleNumber} id="eight">8</button>
-      <button onClick={props.handleNumber} id="nine">9</button>
-      <button className="operator" onClick={props.handleOperators} id="subtract">-</button>
-      <button onClick={props.handleNumber} id="four">4</button>
-      <button onClick={props.handleNumber} id="five">5</button>
-      <button onClick={props.handleNumber} id="six">6</button>
-      <button className="operator" onClick={props.handleOperators} id="add">+</button>
-      <button onClick={props.handleNumber} id="one">1</button>
-      <button onClick={props.handleNumber} id="two">2</button>
-      <button onClick={props.handleNumber} id="three">3</button>
+      <button className="operator" onClick={() => props.handleOperators("/")} id="divide">/</button>
+      <button className="operator" onClick={() => props.handleOperators("*")} id="multiply">*</button>
+      <button onClick={() => props.handleNumber("7")} id="seven">7</button>
+      <button onClick={() => props.handleNumber("8")} id="eight">8</button>
+      <button onClick={() => props.handleNumber("9")} id="nine">9</button>
+      <button className="operator" onClick={() => props.handleOperators("-")} id="subtract">-</button>
+      <button onClick={() => props.handleNumber("4")} id="four">4</button>
+      <button onClick={() => props.handleNumber("5")} id="five">5</button>
+      <button onClick={() => props.handleNumber("6")} id="six">6</button>
+      <button className="operator" onClick={() => props.handleOperators("+")} id="add">+</button>
+      <button onClick={() => props.handleNumber("1")} id="one">1</button>
+      <button onClick={() => props.handleNumber("2")} id="two">2</button>
+      <button onClick={() => props.handleNumber("3")} id="three">3</button>
       <button onClick={props.handleEqual} id="equals">=</button>
-      <button onClick={props.handleNumber} id="zero">0</button>
+      <button onClick={() => props.handleNumber("0")} id="zero">0</button>
       <button onClick={props.handleDecimal} id="decimal">.</button>
 
     </div>
@@ -49,11 +49,38 @@ class App extends React.Component {
     result: "0",
     evaluated: false,
     maxNumber: false
-  }  
+  }
 
-  handleNumber = (e) => {
+  componentDidMount() {
+    document.addEventListener("keydown", this.handleKeyDown);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyDown);
+  }
+
+  handleKeyDown = e => {
+    let key = e.key;
+    console.log(key)
+    //check if pressed key is number
+    if (/[0-9]/.test(key)) {
+      this.handleNumber(key);
+      //check if operator is pressed  
+    } else if (/[/*+-]/.test(key)) {
+      this.handleOperators(key);
+    } else if (key === ".") {
+      this.handleDecimal();
+    } else if (key === "=") {
+      this.handleEqualNoEval();
+    } else if (key === "Backspace") {
+      this.handleClear();
+    } else if (key === "Enter") {
+      this.handleEqualNoEval()
+    };
+  };
+
+  handleNumber = (character) => {
     if (!this.state.maxNumber) {
-      let character = e.target.innerText;
       if (!this.state.evaluated) {
         //checks if we clicked on 0 and first character of result is 0 and not decimal, then we dont type anymore 0
         if (character === "0" && (this.state.result.slice(0, 1) === "0" && !this.state.result.includes("."))) {
@@ -91,8 +118,7 @@ class App extends React.Component {
     }
   }
 
-  handleOperators = (e) => {
-    let operator = e.target.innerText;
+  handleOperators = (operator) => {
     let formula = this.state.formula;
     if (!this.state.evaluated) {
       this.setState({
@@ -143,7 +169,6 @@ class App extends React.Component {
         evaluated: false
       })
     } else {
-      console.log(endsWithOperator.test(this.state.formula))
       if (this.state.result.includes(".") && !endsWithOperator.test(this.state.formula)) {
         return;
       } else if (this.state.formula === "") {
@@ -153,13 +178,13 @@ class App extends React.Component {
         });
       } else if (endsWithOperator.test(this.state.formula)) {
         this.setState({
-          formula: this.state.formula + "0" + e.target.innerText,
-          result: "0" + e.target.innerText
+          formula: this.state.formula + "0.",
+          result: "0."
         });
       } else {
         this.setState({
-          formula: this.state.formula + e.target.innerText,
-          result: this.state.result + e.target.innerText
+          formula: this.state.formula + ".",
+          result: this.state.result + "."
         });
       }
     }
